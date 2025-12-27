@@ -48,7 +48,7 @@ export default async function handler(
     // Fetch fresh data from CoinMarketCap
     const apiKey = process.env.COINMARKETCAP_API_KEY;
 
-    if (!apiKey || apiKey === 'VOEG_HIER_JE_API_KEY_TOE' || apiKey === 'your_api_key_here') {
+    if (!apiKey || apiKey === 'your_api_key_here') {
       return res.status(200).json({
         success: false,
         error: 'API_KEY_NOT_CONFIGURED'
