@@ -64,9 +64,10 @@ export default async function handler(
 
   try {
     const now = Date.now();
+    const forceRefresh = req.query.refresh === 'true';
 
-    // Check if cache is still valid
-    if (cachedActiveCoins && (now - cacheTimestamp) < CACHE_DURATION) {
+    // Check if cache is still valid (unless force refresh)
+    if (!forceRefresh && cachedActiveCoins && (now - cacheTimestamp) < CACHE_DURATION) {
       console.log('Returning cached active coins data');
       return res.status(200).json({
         success: true,
@@ -95,6 +96,14 @@ export default async function handler(
     // Get all symbols from our icons
     const allSymbols = getAllIconSymbols();
     console.log(`Total symbols to check: ${allSymbols.length}`);
+
+    if (allSymbols.length === 0) {
+      console.error('No symbols found! Check icons directory.');
+      return res.status(500).json({
+        success: false,
+        error: 'No symbols found in icons directory'
+      });
+    }
 
     // Batch symbols to minimize API calls
     const symbolBatches = chunkArray(allSymbols, BATCH_SIZE);
@@ -126,13 +135,21 @@ export default async function handler(
 
       const data = await response.json();
 
+      // Debug: Log first batch response
+      if (apiCallsMade === 1) {
+        console.log('First batch response:', JSON.stringify(data, null, 2).substring(0, 500));
+      }
+
       // Add active symbols from this batch
       if (data.data && Array.isArray(data.data)) {
+        console.log(`Batch ${apiCallsMade}: Found ${data.data.length} active coins`);
         data.data.forEach((coin: any) => {
           if (coin.symbol) {
             activeSymbols.add(coin.symbol.toUpperCase());
           }
         });
+      } else {
+        console.log(`Batch ${apiCallsMade}: No data array in response`);
       }
 
       // Small delay between requests to avoid rate limiting
