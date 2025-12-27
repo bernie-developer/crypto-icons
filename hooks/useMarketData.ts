@@ -27,6 +27,7 @@ interface UseMarketDataResult {
   isTop100Coin: (symbol: string) => boolean;
   isActiveCoin: (symbol: string) => boolean;
   apiKeyConfigured: boolean;
+  hasActiveData: boolean; // New: whether we have active coins data
 }
 
 export const useMarketData = (): UseMarketDataResult => {
@@ -42,7 +43,7 @@ export const useMarketData = (): UseMarketDataResult => {
         // Fetch both top 100 and active coins data in parallel
         const [top100Response, activeCoinsResponse] = await Promise.all([
           fetch('/api/coinmarketcap/top100'),
-          fetch('/api/coinmarketcap/active-coins')
+          fetch('/api/active-coins') // New simplified API
         ]);
 
         if (!top100Response.ok || !activeCoinsResponse.ok) {
@@ -64,14 +65,19 @@ export const useMarketData = (): UseMarketDataResult => {
           }
         } else {
           setMarketData(top100Result.data);
-          setActiveCoinsData(activeCoinsResult.data);
+
+          // Convert new format to old format for compatibility
+          if (activeCoinsResult.data) {
+            setActiveCoinsData({
+              activeSymbols: activeCoinsResult.data.symbols || [],
+              timestamp: Date.parse(activeCoinsResult.data.timestamp) || Date.now(),
+              totalChecked: activeCoinsResult.data.total || 0,
+              apiCallsMade: 0 // Static file, no API calls
+            });
+          }
+
           setApiKeyConfigured(true);
           setError(null);
-
-          // Log API usage
-          if (!activeCoinsResult.cached) {
-            console.log(`Active coins check: ${activeCoinsResult.data.apiCallsMade} API calls made`);
-          }
         }
       } catch (err) {
         console.error('Failed to load market data:', err);
@@ -111,5 +117,6 @@ export const useMarketData = (): UseMarketDataResult => {
     isTop100Coin,
     isActiveCoin,
     apiKeyConfigured,
+    hasActiveData: activeCoinsData !== null && activeCoinsData.activeSymbols.length > 0,
   };
 };
