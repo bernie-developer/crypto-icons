@@ -161,9 +161,10 @@ export default async function handler(
         console.log(`Batch ${apiCallsMade}: No data array in response`);
       }
 
-      // Small delay between requests to avoid rate limiting
+      // Delay between requests to respect rate limits
+      // Free tier: ~30 calls/minute, so need 2+ seconds between calls
       if (apiCallsMade < symbolBatches.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 2500)); // 2.5 seconds
       }
     }
 
