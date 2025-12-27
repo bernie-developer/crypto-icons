@@ -72,7 +72,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
       {/* API Key not configured message */}
       {!apiKeyConfigured && !isLoading && (
-        <div className="mt-3 text-xs text-gray-500 text-center max-w-md">
+        <div className="mt-3 text-xs text-gray-500 text-center max-w-2xl">
           <span className="inline-flex items-center gap-1">
             <span>ℹ️</span>
             <span>Filter features require a CoinMarketCap API key. Add your key to <code className="bg-gray-100 px-1 rounded">.env.local</code> to enable filtering.</span>
