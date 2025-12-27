@@ -73,13 +73,18 @@ export default async function handler(
 
     const data = await response.json();
 
+    // Debug: Log first coin to see available fields
+    if (data.data && data.data.length > 0) {
+      console.log('First coin data:', JSON.stringify(data.data[0], null, 2));
+    }
+
     // Extract only the data we need
     const coins: CoinData[] = data.data.map((coin: any) => ({
       id: coin.id,
       name: coin.name,
       symbol: coin.symbol,
       cmc_rank: coin.cmc_rank,
-      is_active: coin.is_active,
+      is_active: coin.is_active !== undefined ? coin.is_active : 1, // Default to active if not provided
     }));
 
     // Update cache
